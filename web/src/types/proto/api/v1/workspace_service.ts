@@ -123,6 +123,7 @@ export interface WorkspaceSetting_GeneralSetting {
 
 /** Custom profile configuration for workspace branding. */
 export interface WorkspaceSetting_GeneralSetting_CustomProfile {
+  // BEN:
   title: string;
   description: string;
   logoUrl: string;

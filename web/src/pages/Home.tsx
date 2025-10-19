@@ -42,6 +42,7 @@ const Home = observer(() => {
       } else if (filter.factor === "property.hasCode") {
         conditions.push(`has_code`);
       } else if (filter.factor === "displayTime") {
+        // BEN:
         const displayWithUpdateTime = workspaceStore.getWorkspaceSettingByKey(WorkspaceSetting_Key.MEMO_RELATED).memoRelatedSetting
           ?.displayWithUpdateTime;
         const factor = displayWithUpdateTime ? "updated_ts" : "created_ts";
