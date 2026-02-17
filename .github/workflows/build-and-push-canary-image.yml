@@ -63,6 +63,6 @@ jobs:
           file: ./scripts/Dockerfile
           platforms: ${{ env.DOCKER_PLATFORMS }}
           push: true
-          tags: bmitchinson/memos:latest
+          tags: bmitchinson/memos:${{ github.sha }}
           build-args: |
             BUILDKIT_INLINE_CACHE=1
