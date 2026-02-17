@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	storepb "github.com/usememos/memos/proto/gen/store"
 	"github.com/usememos/memos/store"
 )
@@ -66,4 +68,54 @@ func (d *DB) ListUserSettings(ctx context.Context, find *store.FindUserSetting) 
 	}
 
 	return userSettingList, nil
+}
+
+func (d *DB) GetUserByPATHash(ctx context.Context, tokenHash string) (*store.PATQueryResult, error) {
+	// Simplified query: fetch all PERSONAL_ACCESS_TOKENS rows and search in Go
+	// This matches SQLite/MySQL behavior and avoids PostgreSQL's strict JSONB errors
+	query := `
+		SELECT
+			user_id,
+			value
+		FROM user_setting
+		WHERE key = 'PERSONAL_ACCESS_TOKENS'
+	`
+
+	rows, err := d.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through all users with PAT settings
+	for rows.Next() {
+		var userID int32
+		var tokensJSON string
+
+		if err := rows.Scan(&userID, &tokensJSON); err != nil {
+			continue // Skip malformed rows
+		}
+
+		// Try to unmarshal - skip if invalid JSON
+		patsUserSetting := &storepb.PersonalAccessTokensUserSetting{}
+		if err := protojsonUnmarshaler.Unmarshal([]byte(tokensJSON), patsUserSetting); err != nil {
+			continue // Skip invalid JSON
+		}
+
+		// Search for matching token hash
+		for _, pat := range patsUserSetting.Tokens {
+			if pat.TokenHash == tokenHash {
+				return &store.PATQueryResult{
+					UserID: userID,
+					PAT:    pat,
+				}, nil
+			}
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return nil, errors.New("PAT not found")
 }

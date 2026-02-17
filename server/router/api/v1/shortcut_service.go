@@ -49,7 +49,7 @@ func (s *APIV1Service) ListShortcuts(ctx context.Context, request *v1pb.ListShor
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user name: %v", err)
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
 	}
@@ -62,7 +62,7 @@ func (s *APIV1Service) ListShortcuts(ctx context.Context, request *v1pb.ListShor
 		Key:    storepb.UserSetting_SHORTCUTS,
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to get user setting: %v", err)
 	}
 	if userSetting == nil {
 		return &v1pb.ListShortcutsResponse{
@@ -91,7 +91,7 @@ func (s *APIV1Service) GetShortcut(ctx context.Context, request *v1pb.GetShortcu
 		return nil, status.Errorf(codes.InvalidArgument, "invalid shortcut name: %v", err)
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
 	}
@@ -130,7 +130,7 @@ func (s *APIV1Service) CreateShortcut(ctx context.Context, request *v1pb.CreateS
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user name: %v", err)
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
 	}
@@ -186,7 +186,7 @@ func (s *APIV1Service) CreateShortcut(ctx context.Context, request *v1pb.CreateS
 
 	_, err = s.Store.UpsertUserSetting(ctx, userSetting)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to upsert user setting: %v", err)
 	}
 
 	return &v1pb.Shortcut{
@@ -202,7 +202,7 @@ func (s *APIV1Service) UpdateShortcut(ctx context.Context, request *v1pb.UpdateS
 		return nil, status.Errorf(codes.InvalidArgument, "invalid shortcut name: %v", err)
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
 	}
@@ -274,7 +274,7 @@ func (s *APIV1Service) DeleteShortcut(ctx context.Context, request *v1pb.DeleteS
 		return nil, status.Errorf(codes.InvalidArgument, "invalid shortcut name: %v", err)
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
 	}
@@ -313,7 +313,7 @@ func (s *APIV1Service) DeleteShortcut(ctx context.Context, request *v1pb.DeleteS
 	}
 	_, err = s.Store.UpsertUserSetting(ctx, userSetting)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to upsert user setting: %v", err)
 	}
 
 	return &emptypb.Empty{}, nil

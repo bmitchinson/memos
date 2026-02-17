@@ -14,6 +14,13 @@ import (
 )
 
 func (s *APIV1Service) SetMemoRelations(ctx context.Context, request *v1pb.SetMemoRelationsRequest) (*emptypb.Empty, error) {
+	user, err := s.fetchCurrentUser(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get current user: %v", err)
+	}
+	if user == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
 	memoUID, err := ExtractMemoUIDFromName(request.Name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid memo name: %v", err)
@@ -21,6 +28,12 @@ func (s *APIV1Service) SetMemoRelations(ctx context.Context, request *v1pb.SetMe
 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get memo")
+	}
+	if memo == nil {
+		return nil, status.Errorf(codes.NotFound, "memo not found")
+	}
+	if memo.CreatorID != user.ID && !isSuperUser(user) {
+		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 	referenceType := store.MemoRelationReference
 	// Delete all reference relations first.
@@ -71,7 +84,7 @@ func (s *APIV1Service) ListMemoRelations(ctx context.Context, request *v1pb.List
 		return nil, status.Errorf(codes.Internal, "failed to get memo")
 	}
 
-	currentUser, err := s.GetCurrentUser(ctx)
+	currentUser, err := s.fetchCurrentUser(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user")
 	}
@@ -87,7 +100,7 @@ func (s *APIV1Service) ListMemoRelations(ctx context.Context, request *v1pb.List
 		MemoFilter: &memoFilter,
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to list memo relations: %v", err)
 	}
 	for _, raw := range tempList {
 		relation, err := s.convertMemoRelationFromStore(ctx, raw)
@@ -101,7 +114,7 @@ func (s *APIV1Service) ListMemoRelations(ctx context.Context, request *v1pb.List
 		MemoFilter:    &memoFilter,
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to list related memo relations: %v", err)
 	}
 	for _, raw := range tempList {
 		relation, err := s.convertMemoRelationFromStore(ctx, raw)
@@ -120,17 +133,17 @@ func (s *APIV1Service) ListMemoRelations(ctx context.Context, request *v1pb.List
 func (s *APIV1Service) convertMemoRelationFromStore(ctx context.Context, memoRelation *store.MemoRelation) (*v1pb.MemoRelation, error) {
 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &memoRelation.MemoID})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to get memo: %v", err)
 	}
-	memoSnippet, err := getMemoContentSnippet(memo.Content)
+	memoSnippet, err := s.getMemoContentSnippet(memo.Content)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get memo content snippet")
 	}
 	relatedMemo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &memoRelation.RelatedMemoID})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "failed to get related memo: %v", err)
 	}
-	relatedMemoSnippet, err := getMemoContentSnippet(relatedMemo.Content)
+	relatedMemoSnippet, err := s.getMemoContentSnippet(relatedMemo.Content)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get related memo content snippet")
 	}

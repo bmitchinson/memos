@@ -1,4 +1,4 @@
-import { Attachment } from "@/types/proto/api/v1/attachment_service";
+import { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
 
 export const getAttachmentUrl = (attachment: Attachment) => {
   if (attachment.externalLink) {
@@ -6,6 +6,10 @@ export const getAttachmentUrl = (attachment: Attachment) => {
   }
 
   return `${window.location.origin}/file/${attachment.name}/${attachment.filename}`;
+};
+
+export const getAttachmentThumbnailUrl = (attachment: Attachment) => {
+  return `${window.location.origin}/file/${attachment.name}/${attachment.filename}?thumbnail=true`;
 };
 
 export const getAttachmentType = (attachment: Attachment) => {

@@ -152,8 +152,6 @@
     "no-archived-memos": "Geen gearchiveerde memos.",
     "no-memos": "Geen memos.",
     "order-by": "Sorteren op",
-    "remove-completed-task-list-items": "Verwijdering voltooid",
-    "remove-completed-task-list-items-confirm": "Weet je zeker dat je alle voltooide taken wilt verwijderen? DEZE ACTIE IS NIET TERUG TE DRAAIEN",
     "search-placeholder": "Memos zoeken…",
     "show-less": "Minder tonen",
     "show-more": "Meer tonen",
@@ -183,7 +181,6 @@
     "no-data": "Geen gegevens gevonden.",
     "password-changed": "Wachtwoord gewijzigd.",
     "password-not-match": "Wachtwoorden komen niet overeen.",
-    "remove-completed-task-list-items-successfully": "Succesvol verwijderd!",
     "restored-successfully": "Succesvol teruggezet",
     "succeed-copy-link": "Link gekopieërd naar klembord.",
     "update-succeed": "Update voltooid",
@@ -251,21 +248,6 @@
       "title": "Accesstokens",
       "token": "Token"
     },
-    "user-sessions-section": {
-      "title": "Actieve sessies",
-      "description": "Een lijst van alle actieve sessies voor je account. Sessies verlopen automatisch 2 weken na de laatste activiteit. Je kunt elke sessie intrekken behalve de huidige.",
-      "device": "Apparaat",
-      "location": "Locatie",
-      "last-active": "Laatst actief",
-      "expires": "Verloopt",
-      "current": "Huidig",
-      "never": "Nooit",
-      "session-revocation": "Weet je zeker dat je sessie {{sessionId}} wilt intrekken? Je moet opnieuw inloggen op dat apparaat.",
-      "session-revoked": "Sessie succesvol ingetrokken",
-      "revoke-session": "Sessie intrekken",
-      "cannot-revoke-current": "Kan huidige sessie niet intrekken",
-      "no-sessions": "Geen actieve sessies gevonden"
-    },
     "account-section": {
       "change-password": "Wachtwoord wijzigen",
       "email-note": "Optioneel",
@@ -292,9 +274,8 @@
     },
     "memo-related": "Memo",
     "memo-related-settings": {
-      "content-lenght-limit": "Maximale inhoudslengte (Byte)",
+      "content-length-limit": "Maximale inhoudslengte (Byte)",
       "enable-blur-nsfw-content": "NSFW-inhoud vervagen inschakelen",
-      "enable-link-preview": "Linkvoorbeeld inschakelen",
       "enable-memo-comments": "Memo-opmerkingen inschakelen",
       "enable-memo-location": "Memo-locatie inschakelen",
       "reactions": "Reacties",
@@ -380,7 +361,6 @@
         "locale": "Servertaal",
         "title": "Server aanpassen"
       },
-      "disable-markdown-shortcuts-in-editor": "Markdown-sneltoetsen in editor uitschakelen",
       "disable-password-login": "Wachtwoordlogin uitzetten",
       "disable-password-login-final-warning": "Typ \"CONFIRM\" als je zeker weet wat je doet.",
       "disable-password-login-warning": "Als je dit uitzet, kan je niet meer inloggen met een wachtwoord, zonder de database aan te passen. Als je inlogprovider niet werkt, kan je memos niet in.",
@@ -410,7 +390,7 @@
       "title": "Webhooks",
       "url": "URL"
     },
-    "workspace-section": {
+    "instance-section": {
       "disallow-change-nickname": "Wijzigen van bijnaam niet toestaan",
       "disallow-change-username": "Wijzigen van gebruikersnaam niet toestaan",
       "disallow-password-auth": "Wachtwoordauthenticatie niet toestaan",

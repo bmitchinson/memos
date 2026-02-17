@@ -1,6 +1,5 @@
-import { observer } from "mobx-react-lite";
+import { useInstance } from "@/contexts/InstanceContext";
 import { cn } from "@/lib/utils";
-import { workspaceStore } from "@/store";
 import UserAvatar from "./UserAvatar";
 
 interface Props {
@@ -8,11 +7,11 @@ interface Props {
   collapsed?: boolean;
 }
 
-const MemosLogo = observer((props: Props) => {
+function MemosLogo(props: Props) {
   const { collapsed } = props;
-  const workspaceGeneralSetting = workspaceStore.state.generalSetting;
-  const title = workspaceGeneralSetting.customProfile?.title || "Memos";
-  const avatarUrl = workspaceGeneralSetting.customProfile?.logoUrl || "/custom-full-logo.webp";
+  const { generalSetting: instanceGeneralSetting } = useInstance();
+  const title = instanceGeneralSetting.customProfile?.title || "Memos";
+  const avatarUrl = instanceGeneralSetting.customProfile?.logoUrl || "/custom-full-logo.webp";
 
   return (
     <div className={cn("relative w-full h-auto shrink-0", props.className)}>
@@ -22,6 +21,6 @@ const MemosLogo = observer((props: Props) => {
       </div>
     </div>
   );
-});
+}
 
 export default MemosLogo;

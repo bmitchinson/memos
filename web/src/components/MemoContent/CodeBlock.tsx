@@ -1,97 +1,44 @@
 import copy from "copy-to-clipboard";
-import DOMPurify from "dompurify";
 import hljs from "highlight.js";
-import { CopyIcon } from "lucide-react";
-import { observer } from "mobx-react-lite";
-import { useEffect, useMemo } from "react";
-import toast from "react-hot-toast";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { workspaceStore } from "@/store";
-import MermaidBlock from "./MermaidBlock";
-import { BaseProps } from "./types";
+import { getThemeWithFallback, resolveTheme } from "@/utils/theme";
+import { MermaidBlock } from "./MermaidBlock";
+import type { ReactMarkdownProps } from "./markdown/types";
+import { extractCodeContent, extractLanguage } from "./utils";
 
-// Special languages that are rendered differently.
-enum SpecialLanguage {
-  HTML = "__html",
-  MERMAID = "mermaid",
+interface CodeBlockProps extends ReactMarkdownProps {
+  children?: React.ReactNode;
+  className?: string;
 }
 
-interface Props extends BaseProps {
-  language: string;
-  content: string;
-}
+export const CodeBlock = ({ children, className, node: _node, ...props }: CodeBlockProps) => {
+  const { userGeneralSetting } = useAuth();
+  const [copied, setCopied] = useState(false);
 
-const CodeBlock: React.FC<Props> = ({ language, content }: Props) => {
-  const formatedLanguage = useMemo(() => (language || "").toLowerCase() || "text", [language]);
+  const codeElement = children as React.ReactElement;
+  const codeClassName = codeElement?.props?.className || "";
+  const codeContent = extractCodeContent(children);
+  const language = extractLanguage(codeClassName);
 
-  // Users can set Markdown code blocks as `__html` to render HTML directly.
-  // Content is sanitized to prevent XSS attacks while preserving safe HTML.
-  if (formatedLanguage === SpecialLanguage.HTML) {
-    const sanitizedHTML = DOMPurify.sanitize(content, {
-      // Allow common safe HTML tags and attributes
-      ALLOWED_TAGS: [
-        "div",
-        "span",
-        "p",
-        "br",
-        "strong",
-        "b",
-        "em",
-        "i",
-        "u",
-        "s",
-        "strike",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "blockquote",
-        "code",
-        "pre",
-        "ul",
-        "ol",
-        "li",
-        "dl",
-        "dt",
-        "dd",
-        "table",
-        "thead",
-        "tbody",
-        "tr",
-        "th",
-        "td",
-        "a",
-        "img",
-        "figure",
-        "figcaption",
-        "hr",
-        "small",
-        "sup",
-        "sub",
-      ],
-      ALLOWED_ATTR: "href title alt src width height class id style target rel colspan rowspan".split(" "),
-      // Forbid dangerous attributes and tags
-      FORBID_ATTR: "onerror onload onclick onmouseover onfocus onblur onchange".split(" "),
-      FORBID_TAGS: "script iframe object embed form input button".split(" "),
-    });
-
+  // If it's a mermaid block, render with MermaidBlock component
+  if (language === "mermaid") {
     return (
-      <div
-        className="w-full overflow-auto my-2!"
-        dangerouslySetInnerHTML={{
-          __html: sanitizedHTML,
-        }}
-      />
+      <pre className="relative">
+        <MermaidBlock className={cn(className)} {...props}>
+          {children}
+        </MermaidBlock>
+      </pre>
     );
-  } else if (formatedLanguage === SpecialLanguage.MERMAID) {
-    return <MermaidBlock content={content} />;
   }
 
-  const appTheme = workspaceStore.state.theme;
-  const isDarkTheme = appTheme.includes("dark");
+  const theme = getThemeWithFallback(userGeneralSetting?.theme);
+  const resolvedTheme = resolveTheme(theme);
+  const isDarkTheme = resolvedTheme.includes("dark");
 
+  // Dynamically load highlight.js theme based on app theme
   useEffect(() => {
     const dynamicImportStyle = async () => {
       // Remove any existing highlight.js style
@@ -116,14 +63,15 @@ const CodeBlock: React.FC<Props> = ({ language, content }: Props) => {
     };
 
     dynamicImportStyle();
-  }, [appTheme, isDarkTheme]);
+  }, [resolvedTheme, isDarkTheme]);
 
+  // Highlight code using highlight.js
   const highlightedCode = useMemo(() => {
     try {
-      const lang = hljs.getLanguage(formatedLanguage);
+      const lang = hljs.getLanguage(language);
       if (lang) {
-        return hljs.highlight(content, {
-          language: formatedLanguage,
+        return hljs.highlight(codeContent, {
+          language: language,
         }).value;
       }
     } catch {
@@ -132,32 +80,77 @@ const CodeBlock: React.FC<Props> = ({ language, content }: Props) => {
 
     // Escape any HTML entities when rendering original content.
     return Object.assign(document.createElement("span"), {
-      textContent: content,
+      textContent: codeContent,
     }).innerHTML;
-  }, [formatedLanguage, content]);
+  }, [language, codeContent]);
 
-  const copyContent = () => {
-    copy(content);
-    toast.success("Copied to clipboard!");
+  const handleCopy = async () => {
+    try {
+      // Try native clipboard API first (requires HTTPS or localhost)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(codeContent);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        // Fallback to copy-to-clipboard library for non-secure contexts
+        const success = copy(codeContent);
+        if (success) {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } else {
+          console.error("Failed to copy code");
+        }
+      }
+    } catch (err) {
+      // If native API fails, try fallback
+      console.warn("Native clipboard failed, using fallback:", err);
+      const success = copy(codeContent);
+      if (success) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        console.error("Failed to copy code:", err);
+      }
+    }
   };
 
   return (
-    <div className="w-full my-1 bg-card border border-border rounded-md relative">
-      <div className="w-full px-2 py-0.5 flex flex-row justify-between items-center text-muted-foreground">
-        <span className="text-xs font-mono">{formatedLanguage}</span>
-        <CopyIcon className="w-3 h-auto cursor-pointer hover:text-foreground" onClick={copyContent} />
+    <pre className="relative my-2 rounded-lg border border-border bg-muted/30 overflow-hidden">
+      {/* Header with language label and copy button */}
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-accent/50">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide select-none">{language || "text"}</span>
+        <button
+          onClick={handleCopy}
+          className={cn(
+            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium",
+            "transition-all duration-200",
+            "hover:bg-accent active:scale-95",
+            copied ? "text-primary bg-primary/10" : "text-muted-foreground",
+          )}
+          aria-label={copied ? "Copied" : "Copy code"}
+          title={copied ? "Copied!" : "Copy code"}
+        >
+          {copied ? (
+            <>
+              <CheckIcon className="w-3.5 h-3.5" />
+              <span>Copied</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon className="w-3.5 h-3.5" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
       </div>
 
-      <div className="overflow-auto">
-        <pre className={cn("no-wrap overflow-auto", "w-full p-2 bg-muted/50 relative")}>
-          <code
-            className={cn(`language-${formatedLanguage}`, "block text-sm leading-5 text-foreground")}
-            dangerouslySetInnerHTML={{ __html: highlightedCode }}
-          ></code>
-        </pre>
+      {/* Code content */}
+      <div className="overflow-x-auto">
+        <code
+          className={cn("block px-3 py-2 text-sm leading-relaxed", `language-${language}`)}
+          dangerouslySetInnerHTML={{ __html: highlightedCode }}
+        />
       </div>
-    </div>
+    </pre>
   );
 };
-
-export default observer(CodeBlock);

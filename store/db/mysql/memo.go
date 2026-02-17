@@ -26,6 +26,18 @@ func (d *DB) CreateMemo(ctx context.Context, create *store.Memo) (*store.Memo, e
 	}
 	args := []any{create.UID, create.CreatorID, create.Content, create.Visibility, payload}
 
+	// Add custom timestamps if provided
+	if create.CreatedTs != 0 {
+		fields = append(fields, "`created_ts`")
+		placeholder = append(placeholder, "?")
+		args = append(args, create.CreatedTs)
+	}
+	if create.UpdatedTs != 0 {
+		fields = append(fields, "`updated_ts`")
+		placeholder = append(placeholder, "?")
+		args = append(args, create.UpdatedTs)
+	}
+
 	stmt := "INSERT INTO `memo` (" + strings.Join(fields, ", ") + ") VALUES (" + strings.Join(placeholder, ", ") + ")"
 	result, err := d.db.ExecContext(ctx, stmt, args...)
 	if err != nil {
@@ -106,11 +118,16 @@ func (d *DB) ListMemos(ctx context.Context, find *store.FindMemo) ([]*store.Memo
 		order = "ASC"
 	}
 	orderBy := []string{}
+	if find.OrderByPinned {
+		orderBy = append(orderBy, "`pinned` DESC")
+	}
 	if find.OrderByUpdatedTs {
 		orderBy = append(orderBy, "`updated_ts` "+order)
 	} else {
 		orderBy = append(orderBy, "`created_ts` "+order)
 	}
+	// Add id as final tie-breaker
+	orderBy = append(orderBy, "`id` DESC")
 	fields := []string{
 		"`memo`.`id` AS `id`",
 		"`memo`.`uid` AS `uid`",

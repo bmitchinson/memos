@@ -13,4 +13,33 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* ========================================
+   * Embedded Content
+   * ======================================== */
+
+  /* iframes (e.g., YouTube embeds, maps) */
+  iframe {
+    max-width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+
+  /* Leaflet Popup Overrides */
+  .leaflet-popup-content-wrapper {
+    border-radius: 0.5rem !important;
+    border: 1px solid var(--border) !important;
+    background-color: var(--background) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 4px !important;
+    line-height: inherit !important;
+    font-size: inherit !important;
+  }
+
+  .leaflet-popup-tip {
+    background-color: var(--background) !important;
+  }
 }

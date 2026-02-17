@@ -25,6 +25,16 @@ func (d *DB) CreateMemo(ctx context.Context, create *store.Memo) (*store.Memo, e
 	}
 	args := []any{create.UID, create.CreatorID, create.Content, create.Visibility, payload}
 
+	// Add custom timestamps if provided
+	if create.CreatedTs != 0 {
+		fields = append(fields, "created_ts")
+		args = append(args, create.CreatedTs)
+	}
+	if create.UpdatedTs != 0 {
+		fields = append(fields, "updated_ts")
+		args = append(args, create.UpdatedTs)
+	}
+
 	stmt := "INSERT INTO memo (" + strings.Join(fields, ", ") + ") VALUES (" + placeholders(len(args)) + ") RETURNING id, created_ts, updated_ts, row_status"
 	if err := d.db.QueryRowContext(ctx, stmt, args...).Scan(
 		&create.ID,
@@ -53,26 +63,22 @@ func (d *DB) ListMemos(ctx context.Context, find *store.FindMemo) ([]*store.Memo
 	}
 	if len(find.IDList) > 0 {
 		holders := make([]string, 0, len(find.IDList))
-		for range find.IDList {
-			holders = append(holders, placeholder(len(args)+1))
-		}
-		where = append(where, "memo.id IN ("+strings.Join(holders, ", ")+")")
 		for _, id := range find.IDList {
+			holders = append(holders, placeholder(len(args)+1))
 			args = append(args, id)
 		}
+		where = append(where, "memo.id IN ("+strings.Join(holders, ", ")+")")
 	}
 	if v := find.UID; v != nil {
 		where, args = append(where, "memo.uid = "+placeholder(len(args)+1)), append(args, *v)
 	}
 	if len(find.UIDList) > 0 {
 		holders := make([]string, 0, len(find.UIDList))
-		for range find.UIDList {
-			holders = append(holders, placeholder(len(args)+1))
-		}
-		where = append(where, "memo.uid IN ("+strings.Join(holders, ", ")+")")
 		for _, uid := range find.UIDList {
+			holders = append(holders, placeholder(len(args)+1))
 			args = append(args, uid)
 		}
+		where = append(where, "memo.uid IN ("+strings.Join(holders, ", ")+")")
 	}
 	if v := find.CreatorID; v != nil {
 		where, args = append(where, "memo.creator_id = "+placeholder(len(args)+1)), append(args, *v)
@@ -97,11 +103,16 @@ func (d *DB) ListMemos(ctx context.Context, find *store.FindMemo) ([]*store.Memo
 		order = "ASC"
 	}
 	orderBy := []string{}
+	if find.OrderByPinned {
+		orderBy = append(orderBy, "pinned DESC")
+	}
 	if find.OrderByUpdatedTs {
 		orderBy = append(orderBy, "updated_ts "+order)
 	} else {
 		orderBy = append(orderBy, "created_ts "+order)
 	}
+	// Add id as final tie-breaker
+	orderBy = append(orderBy, "id DESC")
 	fields := []string{
 		`memo.id AS id`,
 		`memo.uid AS uid`,

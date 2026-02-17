@@ -152,8 +152,6 @@
     "no-archived-memos": "Não existem memos arquivados.",
     "no-memos": "Não existem memos.",
     "order-by": "Ordenar por",
-    "remove-completed-task-list-items": "Remover concluídos",
-    "remove-completed-task-list-items-confirm": "Tem a certeza de que deseja remover todas as tarefas concluídas? ESTA AÇÃO É IRREVERSÍVEL",
     "search-placeholder": "Pesquisar memos...",
     "show-less": "Mostrar menos",
     "show-more": "Mostrar mais",
@@ -183,7 +181,6 @@
     "no-data": "Nenhum dado encontrado.",
     "password-changed": "Palavra-passe alterada",
     "password-not-match": "As palavras-passe não coincidem.",
-    "remove-completed-task-list-items-successfully": "Remoção bem-sucedida",
     "restored-successfully": "Restaurado com sucesso",
     "succeed-copy-link": "Link copiado com sucesso.",
     "update-succeed": "Atualização bem-sucedida",
@@ -251,21 +248,6 @@
       "title": "Tokens de Acesso",
       "token": "Token"
     },
-    "user-sessions-section": {
-      "title": "Sessões ativas",
-      "description": "Uma lista de todas as sessões ativas da sua conta. As sessões expiram automaticamente 2 semanas após a última atividade. Pode revogar qualquer sessão exceto a atual.",
-      "device": "Dispositivo",
-      "location": "Localização",
-      "last-active": "Última atividade",
-      "expires": "Expira",
-      "current": "Atual",
-      "never": "Nunca",
-      "session-revocation": "Tem a certeza de que deseja revogar a sessão {{sessionId}}? Terá de iniciar sessão novamente nesse dispositivo.",
-      "session-revoked": "Sessão revogada com sucesso",
-      "revoke-session": "Revogar sessão",
-      "cannot-revoke-current": "Não é possível revogar a sessão atual",
-      "no-sessions": "Nenhuma sessão ativa encontrada"
-    },
     "account-section": {
       "change-password": "Alterar palavra-passe",
       "email-note": "Opcional",
@@ -292,9 +274,8 @@
     },
     "memo-related": "Memo",
     "memo-related-settings": {
-      "content-lenght-limit": "Limite de comprimento do conteúdo (Bytes)",
+      "content-length-limit": "Limite de comprimento do conteúdo (Bytes)",
       "enable-blur-nsfw-content": "Ativar desfoque de conteúdo sensível (NSFW)",
-      "enable-link-preview": "Ativar pré-visualização de links",
       "enable-memo-comments": "Ativar comentários em memos",
       "enable-memo-location": "Ativar localização em memos",
       "reactions": "Reações",
@@ -380,7 +361,6 @@
         "locale": "Localização do Servidor",
         "title": "Personalizar Servidor"
       },
-      "disable-markdown-shortcuts-in-editor": "Desativar atalhos Markdown no editor",
       "disable-password-login": "Desativar login por palavra-passe",
       "disable-password-login-final-warning": "Escreva \"CONFIRM\" se tiver a certeza.",
       "disable-password-login-warning": "Isto desativará o login por palavra-passe para todos os utilizadores. Não será possível iniciar sessão sem reverter esta definição na base de dados se os seus provedores de identidade falharem. Deve ter cuidado ao remover um provedor de identidade.",
@@ -410,7 +390,7 @@
       "title": "Webhooks",
       "url": "URL"
     },
-    "workspace-section": {
+    "instance-section": {
       "disallow-change-nickname": "Desativar alteração de apelido",
       "disallow-change-username": "Desativar alteração de nome de utilizador",
       "disallow-password-auth": "Desativar autenticação por palavra-passe",

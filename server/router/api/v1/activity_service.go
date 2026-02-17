@@ -34,9 +34,12 @@ func (s *APIV1Service) ListActivities(ctx context.Context, request *v1pb.ListAct
 	for _, activity := range activities {
 		activityMessage, err := s.convertActivityFromStore(ctx, activity)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to convert activity from store: %v", err)
+			// Skip activities that reference deleted memos instead of failing the entire list
+			continue
 		}
-		activityMessages = append(activityMessages, activityMessage)
+		if activityMessage != nil {
+			activityMessages = append(activityMessages, activityMessage)
+		}
 	}
 
 	return &v1pb.ListActivitiesResponse{
@@ -61,13 +64,24 @@ func (s *APIV1Service) GetActivity(ctx context.Context, request *v1pb.GetActivit
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to convert activity from store: %v", err)
 	}
+	if activityMessage == nil {
+		return nil, status.Errorf(codes.NotFound, "activity references deleted content")
+	}
 	return activityMessage, nil
 }
 
+// convertActivityFromStore converts a storage-layer activity to an API activity.
+// This handles the mapping between internal activity representation and the public API,
+// including proper type and level conversions.
+// Returns nil if the activity references deleted content (to allow graceful skipping).
 func (s *APIV1Service) convertActivityFromStore(ctx context.Context, activity *store.Activity) (*v1pb.Activity, error) {
 	payload, err := s.convertActivityPayloadFromStore(ctx, activity.Payload)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to convert activity payload from store: %v", err)
+		return nil, err
+	}
+	// Skip activities that reference deleted memos
+	if payload == nil {
+		return nil, nil
 	}
 
 	// Convert store activity type to proto enum
@@ -98,9 +112,13 @@ func (s *APIV1Service) convertActivityFromStore(ctx context.Context, activity *s
 	}, nil
 }
 
+// convertActivityPayloadFromStore converts a storage-layer activity payload to an API payload.
+// This resolves references (e.g., memo IDs) to resource names for the API.
+// Returns nil if the activity references deleted content (to allow graceful skipping).
 func (s *APIV1Service) convertActivityPayloadFromStore(ctx context.Context, payload *storepb.ActivityPayload) (*v1pb.ActivityPayload, error) {
 	v2Payload := &v1pb.ActivityPayload{}
 	if payload.MemoComment != nil {
+		// Fetch the comment memo
 		memo, err := s.Store.GetMemo(ctx, &store.FindMemo{
 			ID:             &payload.MemoComment.MemoId,
 			ExcludeContent: true,
@@ -108,9 +126,12 @@ func (s *APIV1Service) convertActivityPayloadFromStore(ctx context.Context, payl
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to get memo: %v", err)
 		}
+		// If the comment memo was deleted, skip this activity gracefully
 		if memo == nil {
-			return nil, status.Errorf(codes.NotFound, "memo does not exist")
+			return nil, nil
 		}
+
+		// Fetch the related memo (the one being commented on)
 		relatedMemo, err := s.Store.GetMemo(ctx, &store.FindMemo{
 			ID:             &payload.MemoComment.RelatedMemoId,
 			ExcludeContent: true,
@@ -118,6 +139,11 @@ func (s *APIV1Service) convertActivityPayloadFromStore(ctx context.Context, payl
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to get related memo: %v", err)
 		}
+		// If the related memo was deleted, skip this activity gracefully
+		if relatedMemo == nil {
+			return nil, nil
+		}
+
 		v2Payload.Payload = &v1pb.ActivityPayload_MemoComment{
 			MemoComment: &v1pb.ActivityMemoCommentPayload{
 				Memo:        fmt.Sprintf("%s%s", MemoNamePrefix, memo.UID),

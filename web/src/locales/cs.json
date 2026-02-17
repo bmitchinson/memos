@@ -152,8 +152,6 @@
     "no-archived-memos": "Žádné archivované poznámky.",
     "no-memos": "Žádné poznámky.",
     "order-by": "Řadit dle",
-    "remove-completed-task-list-items": "Odstranit dokončené",
-    "remove-completed-task-list-items-confirm": "Jste si jisti, že chcete odstranit všechny dokončené úkoly? TATO AKCE JE NEVRATNÁ",
     "search-placeholder": "Hledat poznámky...",
     "show-less": "Zobrazit méně",
     "show-more": "Zobrazit více",
@@ -181,7 +179,6 @@
     "no-data": "Nebyly nalezeny žádné údaje.",
     "password-changed": "Heslo změněno",
     "password-not-match": "Hesla nesouhlasí.",
-    "remove-completed-task-list-items-successfully": "Úspěšně odstraněno",
     "restored-successfully": "Úspěšně obnoveno",
     "succeed-copy-link": "Odkaz byl úspěšně zkopírován.",
     "update-succeed": "Aktualizace proběhla úspěšně",
@@ -275,9 +272,8 @@
     },
     "memo-related": "Poznámky",
     "memo-related-settings": {
-      "content-lenght-limit": "Omezení velikosti obsahu (bajty)",
+      "content-length-limit": "Omezení velikosti obsahu (bajty)",
       "enable-blur-nsfw-content": "Povolit rozostření citlivého obsahu",
-      "enable-link-preview": "Povolit náhled odkazu",
       "enable-memo-comments": "Povolit komentáře k poznámkám",
       "enable-memo-location": "Povolit umístění poznámek",
       "reactions": "Reakce",
@@ -363,7 +359,6 @@
         "locale": "Lokalizace serveru",
         "title": "Přizpůsobení serveru"
       },
-      "disable-markdown-shortcuts-in-editor": "Zakázat klávesové zkratky Markdown v editoru",
       "disable-password-login": "Zakázat přihlašování heslem",
       "disable-password-login-final-warning": "Pokud víte, co děláte, zadejte \"CONFIRM\".",
       "disable-password-login-warning": "Tímto zakážete přihlašování heslem pro všechny uživatele. Bez obnovení tohoto nastavení v databázi není možné se přihlásit, pokud selžou vámi nakonfigurovaní poskytovatelé identit. Při odebírání poskytovatele identit budete muset být také velmi opatrní.",
@@ -393,7 +388,7 @@
       "title": "Webhooky",
       "url": "URL"
     },
-    "workspace-section": {
+    "instance-section": {
       "disallow-change-nickname": "Zakázat změnu přezdívky",
       "disallow-change-username": "Zakázat změnu uživatelského jména",
       "disallow-password-auth": "Zakázat ověřování heslem",
